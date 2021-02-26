@@ -26,10 +26,23 @@ impl FetchStage {
         tpu_forwards_sockets: Vec<UdpSocket>,
         exit: &Arc<AtomicBool>,
         poh_recorder: &Arc<Mutex<PohRecorder>>,
+        coalesce_ms: u64,
     ) -> (Self, PacketReceiver) {
         let (sender, receiver) = channel();
         (
+<<<<<<< HEAD
             Self::new_with_sender(sockets, tpu_forwards_sockets, exit, &sender, &poh_recorder),
+=======
+            Self::new_with_sender(
+                sockets,
+                tpu_forwards_sockets,
+                exit,
+                &sender,
+                &poh_recorder,
+                None,
+                coalesce_ms,
+            ),
+>>>>>>> 05409e51c... Increase tpu coalescing and add parameter (#15536)
             receiver,
         )
     }
@@ -39,6 +52,11 @@ impl FetchStage {
         exit: &Arc<AtomicBool>,
         sender: &PacketSender,
         poh_recorder: &Arc<Mutex<PohRecorder>>,
+<<<<<<< HEAD
+=======
+        allocated_packet_limit: Option<u32>,
+        coalesce_ms: u64,
+>>>>>>> 05409e51c... Increase tpu coalescing and add parameter (#15536)
     ) -> Self {
         let tx_sockets = sockets.into_iter().map(Arc::new).collect();
         let tpu_forwards_sockets = tpu_forwards_sockets.into_iter().map(Arc::new).collect();
@@ -48,6 +66,11 @@ impl FetchStage {
             exit,
             &sender,
             &poh_recorder,
+<<<<<<< HEAD
+=======
+            allocated_packet_limit,
+            coalesce_ms,
+>>>>>>> 05409e51c... Increase tpu coalescing and add parameter (#15536)
         )
     }
 
@@ -92,6 +115,11 @@ impl FetchStage {
         exit: &Arc<AtomicBool>,
         sender: &PacketSender,
         poh_recorder: &Arc<Mutex<PohRecorder>>,
+<<<<<<< HEAD
+=======
+        limit: Option<u32>,
+        coalesce_ms: u64,
+>>>>>>> 05409e51c... Increase tpu coalescing and add parameter (#15536)
     ) -> Self {
         let recycler: PacketsRecycler = Recycler::warmed(1000, 1024);
 
@@ -102,6 +130,7 @@ impl FetchStage {
                 sender.clone(),
                 recycler.clone(),
                 "fetch_stage",
+                coalesce_ms,
             )
         });
 
@@ -113,6 +142,7 @@ impl FetchStage {
                 forward_sender.clone(),
                 recycler.clone(),
                 "fetch_forward_stage",
+                coalesce_ms,
             )
         });
 

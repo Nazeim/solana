@@ -36,6 +36,7 @@ fn recv_loop(
     channel: &PacketSender,
     recycler: &PacketsRecycler,
     name: &'static str,
+    coalesce_ms: u64,
 ) -> Result<()> {
     let mut recv_count = 0;
     let mut call_count = 0;
@@ -49,7 +50,7 @@ fn recv_loop(
             if exit.load(Ordering::Relaxed) {
                 return Ok(());
             }
-            if let Ok(len) = packet::recv_from(&mut msgs, sock, 1) {
+            if let Ok(len) = packet::recv_from(&mut msgs, sock, coalesce_ms) {
                 if len == NUM_RCVMMSGS {
                     num_max_received += 1;
                 }
@@ -83,6 +84,7 @@ pub fn receiver(
     packet_sender: PacketSender,
     recycler: PacketsRecycler,
     name: &'static str,
+    coalesce_ms: u64,
 ) -> JoinHandle<()> {
     let res = sock.set_read_timeout(Some(Duration::new(1, 0)));
     if res.is_err() {
@@ -93,7 +95,14 @@ pub fn receiver(
         .name("solana-receiver".to_string())
         .spawn(move || {
             thread_mem_usage::datapoint(name);
-            let _ = recv_loop(&sock, exit, &packet_sender, &recycler.clone(), name);
+            let _ = recv_loop(
+                &sock,
+                exit,
+                &packet_sender,
+                &recycler.clone(),
+                name,
+                coalesce_ms,
+            );
         })
         .unwrap()
 }
@@ -198,7 +207,18 @@ mod test {
         let send = UdpSocket::bind("127.0.0.1:0").expect("bind");
         let exit = Arc::new(AtomicBool::new(false));
         let (s_reader, r_reader) = channel();
+<<<<<<< HEAD
         let t_receiver = receiver(Arc::new(read), &exit, s_reader, Recycler::default(), "test");
+=======
+        let t_receiver = receiver(
+            Arc::new(read),
+            &exit,
+            s_reader,
+            Recycler::new_without_limit(""),
+            "test",
+            1,
+        );
+>>>>>>> 05409e51c... Increase tpu coalescing and add parameter (#15536)
         let t_responder = {
             let (s_responder, r_responder) = channel();
             let t_responder = responder("streamer_send_test", Arc::new(send), r_responder);

@@ -29,6 +29,8 @@ use std::{
     thread,
 };
 
+pub const DEFAULT_TPU_COALESCE_MS: u64 = 5;
+
 pub struct Tpu {
     fetch_stage: FetchStage,
     sigverify_stage: SigVerifyStage,
@@ -59,6 +61,7 @@ impl Tpu {
         replay_vote_receiver: ReplayVoteReceiver,
         replay_vote_sender: ReplayVoteSender,
         bank_notification_sender: Option<BankNotificationSender>,
+        tpu_coalesce_ms: u64,
     ) -> Self {
         let (packet_sender, packet_receiver) = channel();
         let fetch_stage = FetchStage::new_with_sender(
@@ -67,6 +70,13 @@ impl Tpu {
             &exit,
             &packet_sender,
             &poh_recorder,
+<<<<<<< HEAD
+=======
+            // At 1024 packets per `Packet`, each packet about MTU size ~1k, this is roughly
+            // 20GB
+            Some(20_000),
+            tpu_coalesce_ms,
+>>>>>>> 05409e51c... Increase tpu coalescing and add parameter (#15536)
         );
         let (verified_sender, verified_receiver) = unbounded();
 
